@@ -1,0 +1,94 @@
+/* EngineerCard.css */
+:root {
+    --primary-blue: #2E5BFF;
+    --professional-gray: #4A4A4A;
+    --accent-orange: #FF6D2E;
+  }
+  
+  .card-container {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 640px;
+    margin: 2rem auto;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .engineer-character {
+    width: 180px;
+    height: 220px;
+    margin: 0 auto;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+  
+  .helmet {
+    position: absolute;
+    width: 60%;
+    height: 45%;
+    background: var(--primary-blue);
+    border-radius: 50% 50% 40% 40%;
+    top: 10%;
+    left: 20%;
+    z-index: 2;
+  }
+  
+  .visor {
+    position: absolute;
+    width: 70%;
+    height: 30%;
+    background: rgba(0,0,0,0.1);
+    bottom: 15%;
+    left: 15%;
+    border-radius: 10px;
+  }
+  
+  .body {
+    position: absolute;
+    width: 80%;
+    height: 50%;
+    background: var(--professional-gray);
+    bottom: 0;
+    left: 10%;
+    border-radius: 15px;
+    z-index: 1;
+  }
+  
+  .laptop {
+    position: absolute;
+    width: 50%;
+    height: 35%;
+    background: #fff;
+    bottom: -8%;
+    right: 5%;
+    transform: rotate(15deg);
+    border-radius: 5px;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.1);
+  }
+  
+  .greeting-text {
+    padding: 1.5rem;
+    font-family: 'Noto Naskh Arabic', sans-serif;
+  }
+  
+  .title {
+    color: var(--primary-blue);
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .subtitle {
+    color: var(--professional-gray);
+    font-size: 1.2rem;
+    margin: 0;
+  }
+  
+  /* تأثيرات الحركة */
+  .engineer-character:hover {
+    transform: translateY(-5px);
+  }
+  
+  .laptop:hover {
+    transform: rotate(15deg) scale(1.05);
+  }
