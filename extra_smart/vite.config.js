@@ -3,10 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  appType: 'spa',
-  base: '/', 
+  appType: 'spa', 
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
     minify: 'terser',
     sourcemap: false,
     terserOptions: {
@@ -15,6 +19,7 @@ export default defineConfig({
       }
     }
   },
+  base: '/',
   server: {
     host: '127.0.0.1',
     port: 5173,
