@@ -1,66 +1,104 @@
 import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
-import { $isAuthorized } from '../atoms/AuthAtom';
+import { $isAuthorized } from '../atoms/AuthAtom'; 
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants'; // تأكد إن REFRESH_TOKEN معرف هنا
-import api from '../api';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants'; 
+import api, { logout } from '../api';
 
 export default function AuthProvider({ children }) {
   const setAuth = useSetRecoilState($isAuthorized);
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem(ACCESS_TOKEN) || Cookies.get(ACCESS_TOKEN);
+    
+      const getToken = (tokenName) => {
+        return import.meta.env.MODE === 'production'
+          ? Cookies.get(tokenName)
+          : localStorage.getItem(tokenName);
+      };
 
-      if (token && token.split('.').length === 3) {
-        try {
-          const decoded = jwtDecode(token);
-          const now = Date.now() / 1000;
+      const removeToken = (tokenName) => {
+        if (import.meta.env.MODE === 'production') {
+          Cookies.remove(tokenName);
+        } else {
+          localStorage.removeItem(tokenName);
+        }
+      };
 
-          if (decoded.exp > now) {
+      const accessToken = getToken(ACCESS_TOKEN);
+      const refreshToken = getToken(REFRESH_TOKEN);
+
+      if (!accessToken) {
+        setAuth({
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+        });
+        return;
+      }
+
+      try {
+        const decoded = jwtDecode(accessToken);
+        const now = Date.now() / 1000;
+        const isExpired = decoded.exp < now;
+
+        if (!isExpired) {
             const user = {
-              id: decoded.user_id || decoded.id || null,
-              username: decoded.username || '',
+              id: decoded.user_id || decoded.sub || null,
+              username: decoded.username || decoded.preferred_username || '',
               email: decoded.email || '',
             };
 
             setAuth({
               isRegularAuth: true,
-              user: { ...user, token },
+              user,
+              loading: false,
+            });
+            return;
+          }
+        
+        if (!refreshToken) {
+          logout(); 
+          return;
+        }
+
+        try {
+          const response = await api.post('/auth/token/refresh/', { 
+            refresh: refreshToken 
+          });
+          
+          const newAccessToken = response.data.access;
+          
+          if (import.meta.env.MODE === 'production') {
+            Cookies.set(ACCESS_TOKEN, newAccessToken, {
+              secure: true,
+              sameSite: 'Strict',
+              expires: 1,
             });
           } else {
-            try {
-              const refresh = localStorage.getItem(REFRESH_TOKEN);
-
-              if (!refresh) throw new Error('No refresh token found');
-
-              const res = await api.post('/auth/token/refresh/', {
-                refresh,
-              });
-
-              const newAccess = res.data.access;
-              localStorage.setItem(ACCESS_TOKEN, newAccess);
-
-              const decoded = jwtDecode(newAccess);
-              const user = {
-                id: decoded.user_id || decoded.id || null,
-                username: decoded.username || '',
-                email: decoded.email || '',
-              };
-
-              setAuth({
-                isRegularAuth: true,
-                user: { ...user, token: newAccess },
-              });
-            } catch (err) {
-              console.error('Token refresh failed in AuthProvider:', err);
-
-            }
+            localStorage.setItem(ACCESS_TOKEN, newAccessToken);
           }
-        } catch (e) {
-          console.error('Token decode error:', e);
+
+          const newDecoded = jwtDecode(newAccessToken);
+          const user = {
+            id: newDecoded.user_id || newDecoded.sub || null,
+            username: newDecoded.username || newDecoded.preferred_username || '',
+            email: newDecoded.email || '',
+          };
+          
+          setAuth({
+            isAuthenticated: true,
+            user,
+            loading: false,
+          });
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          logout(); 
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        logout(); 
       }
     };
 

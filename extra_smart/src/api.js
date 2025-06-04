@@ -75,7 +75,7 @@ const removeRefreshToken = () => {
   localStorage.removeItem(REFRESH_TOKEN);
 };
 
-// ✅ Request Interceptor
+
 api.interceptors.request.use(
   async (config) => {
     let token = getAccessToken();
@@ -102,7 +102,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Check if token expired
+// Check if token expired
 const isTokenExpired = (token) => {
   try {
     const expiry = JSON.parse(atob(token.split('.')[1])).exp;
@@ -157,11 +157,21 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ Logout
+
 const logout = () => {
-  removeAccessToken();
-  removeRefreshToken();
-  window.location.href = '/login';
+ 
+  if (import.meta.env.MODE === 'production') {
+    Cookies.remove(ACCESS_TOKEN);
+    Cookies.remove(REFRESH_TOKEN);
+  } else {
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
+  }
+    
+   window.$resetRecoilState && window.$resetRecoilState($isAuthorized);
+ 
+    window.location.href = '/login';
+    setTimeout(() => window.location.reload(), 100);
 };
 
 export default api;

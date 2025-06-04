@@ -1,15 +1,14 @@
-// authAtom.js
+
 import { atom } from 'recoil';
 
 export const $isAuthorized = atom({
-  key: 'isAuthorized', 
+  key: 'authState', 
   default: {
     isRegularAuth: false,
-    isGoogleAuth: false,
     user: null,
+    loading: true, 
   },
 });
-
 // export const $googleAuth = atom({
 //   key: 'googleAuth', 
 //   default: {
