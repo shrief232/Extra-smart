@@ -58,7 +58,7 @@ function App() {
           <AuthProvider>
             <EnrollmentProvider>
               <CourseProvider>
-                <BrowserRouter>
+                <BrowserRouter >
                   <AppInitializer>
                     <AppRoutes />
                   </AppInitializer>
