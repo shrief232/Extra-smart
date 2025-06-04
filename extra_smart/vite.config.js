@@ -6,6 +6,7 @@ export default defineConfig({
   appType: 'spa',
   base: '/', 
   build: {
+    outDir: 'dist',
     minify: 'terser',
     sourcemap: false,
     terserOptions: {
