@@ -1,5 +1,5 @@
 import React from 'react'
-import {  Outlet, Route, Routes } from 'react-router-dom'
+import {  Outlet, Route, Routes, useParams, useNavigate  } from 'react-router-dom'
 import MainLayout from '../layout/MainLayout'
 import Courses from '../pages/home/Courses'
 import DahuaIP from '../pages/DahuaIP/DahuaIP';
@@ -18,6 +18,7 @@ import RegisterPage from '../join/RegisterPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import IPFinal from '../pages/MyAssessment/finalPages/IPFinal';
 import HDFinal from '../pages/MyAssessment/finalPages/HDFinal';
+import NotFoundPage from '../pages/NotFoundPage';
 
 export default function AppRoutes() {
   
@@ -51,8 +52,7 @@ export default function AppRoutes() {
             <Route path='imou/imou' element={<Imou />} />
             <Route path='assessment/assessment' element={<MyAssessment />} />
             <Route path='finalip' element={<IPFinal />} />
-            <Route path='finalhd' element={<HDFinal />} />
-            
+            <Route path='finalhd' element={<HDFinal />} /> 
             <Route path='payments' element={<MyPayments />} />
             <Route path='sales/presales' element={<Presales />} />
             <Route path='sales/retail' element={<Retail />} /> 
@@ -64,6 +64,7 @@ export default function AppRoutes() {
             <Route path='register' element={<RegisterPage />} /> 
           </Route>
         </Route>
+        <Route path='*' element={<NotFoundPage />} />
       </Routes>    
     
   )

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState} from 'react';
 import { RecoilRoot, useSetRecoilState } from 'recoil';
 import { BrowserRouter } from 'react-router-dom'
 import AppRoutes from './routes/AppRoutes';
@@ -8,6 +8,7 @@ import { Box } from '@mui/material';
 import { CourseProvider } from './context/CourseContext';
 import { $isAuthorized } from './atoms/AuthAtom';
 import { restoreSession } from './atoms/restoreSession';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 
@@ -37,7 +38,7 @@ function AppInitializer({ children }) {
   if (loading) {
     return (
       <Box
-        sx={{
+       sx={{
           minHeight: '100vh',
           display: 'flex',
           alignItems: 'center',
@@ -49,23 +50,23 @@ function AppInitializer({ children }) {
     );
   }
 
-  return children;
+  return <>{children}</>;
 }
-function App({children}) {
-
-  return (
-    
-      <RecoilRoot>
-        <AuthProvider>
-          <EnrollmentProvider>
-          <CourseProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-            </CourseProvider>
-          </EnrollmentProvider>
-        </AuthProvider>
-      </RecoilRoot>
+function App() {
+    return (
+        <RecoilRoot>
+          <AuthProvider>
+            <EnrollmentProvider>
+              <CourseProvider>
+                <BrowserRouter>
+                  <AppInitializer>
+                    <AppRoutes />
+                  </AppInitializer>
+                </BrowserRouter>
+              </CourseProvider>
+            </EnrollmentProvider>
+          </AuthProvider>
+        </RecoilRoot>
      
      
   )
