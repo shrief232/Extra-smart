@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
-import { $isAuthorized } from '../atoms/AuthAtom'; 
+import { $isAuthorized } from '../atoms/AuthAtom';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants'; 
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
 import api, { logout } from '../api';
 
 export default function AuthProvider({ children }) {
@@ -11,30 +11,17 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     const initAuth = async () => {
-    
       const getToken = (tokenName) => {
         return import.meta.env.MODE === 'production'
           ? Cookies.get(tokenName)
           : localStorage.getItem(tokenName);
       };
 
-      const removeToken = (tokenName) => {
-        if (import.meta.env.MODE === 'production') {
-          Cookies.remove(tokenName);
-        } else {
-          localStorage.removeItem(tokenName);
-        }
-      };
-
       const accessToken = getToken(ACCESS_TOKEN);
       const refreshToken = getToken(REFRESH_TOKEN);
 
       if (!accessToken) {
-        setAuth({
-          isAuthenticated: false,
-          user: null,
-          loading: false,
-        });
+        setAuth({ isRegularAuth: false, user: null, loading: false });
         return;
       }
 
@@ -44,32 +31,29 @@ export default function AuthProvider({ children }) {
         const isExpired = decoded.exp < now;
 
         if (!isExpired) {
-            const user = {
-              id: decoded.user_id || decoded.sub || null,
-              username: decoded.username || decoded.preferred_username || '',
-              email: decoded.email || '',
-            };
+          const user = {
+            id: decoded.user_id || decoded.sub || null,
+            username: decoded.username || decoded.preferred_username || '',
+            email: decoded.email || '',
+          };
 
-            setAuth({
-              isRegularAuth: true,
-              user,
-              loading: false,
-            });
-            return;
-          }
-        
+          setAuth({ isRegularAuth: true, user, loading: false });
+          return;
+        }
+
         if (!refreshToken) {
-          logout(); 
+          logout();
+          setAuth({ isRegularAuth: false, user: null, loading: false });
           return;
         }
 
         try {
-          const response = await api.post('/auth/token/refresh/', { 
-            refresh: refreshToken 
+          const response = await api.post('/auth/token/refresh/', {
+            refresh: refreshToken,
           });
-          
+
           const newAccessToken = response.data.access;
-          
+
           if (import.meta.env.MODE === 'production') {
             Cookies.set(ACCESS_TOKEN, newAccessToken, {
               secure: true,
@@ -86,19 +70,17 @@ export default function AuthProvider({ children }) {
             username: newDecoded.username || newDecoded.preferred_username || '',
             email: newDecoded.email || '',
           };
-          
-          setAuth({
-            isAuthenticated: true,
-            user,
-            loading: false,
-          });
+
+          setAuth({ isRegularAuth: true, user, loading: false });
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
-          logout(); 
+          logout();
+          setAuth({ isRegularAuth: false, user: null, loading: false });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        logout(); 
+        logout();
+        setAuth({ isRegularAuth: false, user: null, loading: false });
       }
     };
 

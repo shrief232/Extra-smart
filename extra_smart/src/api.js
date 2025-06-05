@@ -9,7 +9,6 @@ const api = axios.create({
   xsrfHeaderName: 'X-CSRFToken',
 });
 
-// ✅ Get & Sync Access Token
 const getAccessToken = () => {
   const fromCookie = Cookies.get(ACCESS_TOKEN);
   const fromLocalStorage = localStorage.getItem(ACCESS_TOKEN);
@@ -42,7 +41,6 @@ const removeAccessToken = () => {
   localStorage.removeItem(ACCESS_TOKEN);
 };
 
-// ✅ Get & Sync Refresh Token
 const getRefreshToken = () => {
   const fromCookie = Cookies.get(REFRESH_TOKEN);
   const fromLocalStorage = localStorage.getItem(REFRESH_TOKEN);
@@ -102,7 +100,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Check if token expired
 const isTokenExpired = (token) => {
   try {
     const expiry = JSON.parse(atob(token.split('.')[1])).exp;
@@ -113,7 +110,6 @@ const isTokenExpired = (token) => {
   }
 };
 
-// ✅ Refresh Access Token
 const refreshAccessToken = async () => {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
