@@ -269,8 +269,8 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
                     alt="sitting"
                     sx={{
                        width: { xs: 100, sm: 150, md: 170, lg: 200 },
-                       height: { xs: 180, sm: 220, md: 220, lg: 260 },
-                       maxWidth: "200px", height: "auto", borderRadius: 2 }}
+                       height: { xs: 180, sm: 200, md: 220, lg: 260 },
+                       maxWidth: "200px", borderRadius: 2 }}
                   />
                 </MotionBox>
                 <Typography variant="body1" color="text.secondary">
