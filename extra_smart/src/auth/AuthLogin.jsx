@@ -51,9 +51,10 @@ export default function AuthLogin() {
       });
 
       const { access, refresh, user } = response.data;
-      const isSecure = process.env.NODE_ENV === 'production';
+      const isSecure = import.meta.env.MODE === 'production'; 
 
-      Cookies.set(ACCESS_TOKEN, access, { path: '/', secure:isSecure, sameSite: 'Lax' });
+
+      Cookies.set(ACCESS_TOKEN, access, { path: '/', secure:isSecure, sameSite: 'lax' });
       Cookies.set(REFRESH_TOKEN, refresh, { path: '/', secure:isSecure, sameSite: 'Lax' });
       if  (response.data.access && response.data.refresh) {
 
