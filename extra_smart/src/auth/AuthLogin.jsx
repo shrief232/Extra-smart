@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, IconButton,InputAdornment, Stack, useMediaQuery, useTheme } from '@mui/material';
-// import { LoadingButton } from '@mui/lab';
+import {
+  Button,
+  IconButton,
+  InputAdornment,
+  Stack,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { Icon } from '@iconify/react';
-import { useNavigate } from 'react-router-dom';
-import { ACCESS_TOKEN, REFRESH_TOKEN, GOOGLE_ACCESS_TOKEN } from '../constants';
-import api from '../api';
-// import {$googleAuth} from '../Atoms/googleAtom';
+import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import Cookies from 'js-cookie';  
+
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
+import api from '../api';
 import CustomFormProvider from '../hooks-form/FormProvider';
 import RHFTextField from '../hooks-form/RHFTextFiled';
 import { $isAuthorized } from '../atoms/AuthAtom';
@@ -18,26 +23,22 @@ import { useRecoilState } from 'recoil';
 import { LoginSchema } from '../schema/LoginSchema';
 import { useEnrollment } from '../context/EnrollmentContext';
 
-
-
 export default function AuthLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [regularAuth, setRegularAuth] = useRecoilState($isAuthorized);
   const location = useLocation();
-  // const [googleAuth, setGoogleAuth] = useRecoilState($googleAuth);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { fetchEnrolledCourses } = useEnrollment();
 
- 
   const methods = useForm({
     resolver: yupResolver(LoginSchema),
     defaultValues: {
       username: '',
       password: '',
-    }
+    },
   });
 
   const { handleSubmit } = methods;
@@ -47,45 +48,44 @@ export default function AuthLogin() {
     try {
       const response = await api.post('/en/users/token/', {
         username: data.username,
-        password: data.password, 
+        password: data.password,
       });
 
       const { access, refresh, user } = response.data;
-      const isSecure = import.meta.env.MODE === 'production'; 
+      const isSecure = import.meta.env.MODE === 'production';
 
+      if (access && refresh) {
+        // Set tokens in localStorage
+        localStorage.setItem(ACCESS_TOKEN, access);
+        localStorage.setItem(REFRESH_TOKEN, refresh);
 
-      Cookies.set(ACCESS_TOKEN, access, { path: '/', secure:isSecure, sameSite: 'lax' });
-      Cookies.set(REFRESH_TOKEN, refresh, { path: '/', secure:isSecure, sameSite: 'Lax' });
-      if  (response.data.access && response.data.refresh) {
+        // Set cookies securely
+        Cookies.set(ACCESS_TOKEN, access, {
+          path: '/',
+          secure: isSecure,
+          sameSite: 'Strict',
+        });
+        Cookies.set(REFRESH_TOKEN, refresh, {
+          path: '/',
+          secure: isSecure,
+          sameSite: 'Strict',
+        });
 
-          localStorage.setItem(ACCESS_TOKEN, response.data.access);
-          localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+        // Update auth state
+        setRegularAuth({
+          isRegularAuth: true,
+          user,
+        });
 
-          Cookies.set(ACCESS_TOKEN, response.data.access, {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict'
-          });
-          
-          Cookies.set(REFRESH_TOKEN, response.data.refresh, {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict'
-          });
-      
-          
+        const redirectTo = location.state?.from?.pathname || '/';
+        navigate(redirectTo, { replace: true });
+        toast.success('Login successful');
+
+        await fetchEnrolledCourses();
       } else {
-          console.error('Access or refresh token is undefined:', { access, refresh });
+        console.error('Access or refresh token is undefined:', { access, refresh });
+        toast.error('Unexpected login response. Try again.');
       }
-
-      setRegularAuth({
-        isRegularAuth: true,
-        user: response.data.user,
-      });
-      
-      const redirectTo = location.state?.from?.pathname || '/';
-      navigate(redirectTo, { replace: true });
-      toast.success('Login successful');
-      await fetchEnrolledCourses(); 
-
     } catch (error) {
       console.error('Login error:', error);
       if (error.code === 'ERR_NETWORK') {
@@ -97,43 +97,6 @@ export default function AuthLogin() {
       setLoading(false);
     }
   };
-
-  // const handleGoogleLogin = async (credentialResponse) => {
-  //   const { credential } = credentialResponse;
-
-  //   if (!credential) {
-  //     console.error('No credential received');
-  //     return toast.error('Failed to retrieve Google credential.');
-  //   }
-
-  //   try {
-  //     setLoading(true);
-  //     const response = await api.post('/en/api/auth/google/login/', { token: credential });
-  //     const { access, user } = response.data;
-  //     const isSecure = process.env.NODE_ENV === 'production';
-
-  //     Cookies.set(GOOGLE_ACCESS_TOKEN, access, { path: '/', secure: isSecure, sameSite: 'Strict' });
-
-  //     setGoogleAuth({
-  //       isGoogleAuth: true,
-  //       user: { ...user, token: access },
-  //     });
-
-  //     navigate('/welcome');
-  //     toast.success('Google login successful');
-  //     onClose();
-  //   } catch (error) {
-  //     console.error('Google login error:', error.response?.data || error.message);
-  //     toast.error('Failed to log in with Google');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleGoogleFailure = (error) => {
-  //   console.error('Google login error:', error);
-  //   toast.error('Google login failed. Please try again.');
-  // };
 
   return (
     <CustomFormProvider methods={methods} onSubmit={handleSubmit(handleRegularLogin)}>
@@ -162,20 +125,18 @@ export default function AuthLogin() {
           variant="contained"
           sx={{
             bgcolor: '#4568f1',
-            color: (theme) => (theme.palette.mode === 'light' ? 'common.white' : 'common.white'),
+            color: (theme) =>
+              theme.palette.mode === 'light' ? 'common.white' : 'common.white',
             '&:hover': {
               bgcolor: 'white',
-              color: (theme) => (theme.palette.mode === 'light' ? 'common.white' : 'grey.800'),
+              color: (theme) =>
+                theme.palette.mode === 'light' ? 'common.white' : 'grey.800',
             },
           }}
-          loading={loading}
+          disabled={loading}
         >
           Login
         </Button>
-        {/* <GoogleLogin
-          onSuccess={handleGoogleLogin}
-          onError={handleGoogleFailure}
-        /> */}
       </Stack>
     </CustomFormProvider>
   );
