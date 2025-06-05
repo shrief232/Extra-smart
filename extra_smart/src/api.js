@@ -3,7 +3,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ,
+  baseURL: import.meta.env.VITE_API_URL || 'https://shrief.pythonanywhere.com',
   withCredentials: true,
   xsrfCookieName: 'csrftoken',  
   xsrfHeaderName: 'X-CSRFToken',
