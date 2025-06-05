@@ -3,7 +3,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
+  baseURL: import.meta.env.VITE_API_URL ,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',  
   xsrfHeaderName: 'X-CSRFToken',
