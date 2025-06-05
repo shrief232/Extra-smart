@@ -6,15 +6,16 @@ import { useRecoilState } from 'recoil';
 function IsLoggedin({ children }) {
   const [isAuthorized] = useRecoilState($isAuthorized);
 
-  if (isAuthorized === undefined) {
-    return null;
+  if (isAuthorized.loading) {
+    return null; 
   }
 
-  if (isAuthorized?.isRegularAuth) {
+  if (isAuthorized.isRegularAuth) {
     return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
 }
+
 
 export default IsLoggedin;

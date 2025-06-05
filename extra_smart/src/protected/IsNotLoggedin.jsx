@@ -6,15 +6,16 @@ function IsNotLoggedin({ children }) {
   const [isAuthorized] = useRecoilState($isAuthorized);
   const location = useLocation();
 
-  if (isAuthorized === undefined) {
-    return null;
+  if (isAuthorized.loading) {
+    return null; // أو Skeleton
   }
 
-  if (!isAuthorized?.isRegularAuth) {
+  if (!isAuthorized.isRegularAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
 }
+
 
 export default IsNotLoggedin;

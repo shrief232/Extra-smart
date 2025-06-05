@@ -12,26 +12,25 @@ export default function LogOut() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    resetAuthState();
-    
     const tokens = [ACCESS_TOKEN, REFRESH_TOKEN];
     if (import.meta.env.MODE === 'production') {
       tokens.forEach(token => Cookies.remove(token, { path: '/' }));
     } else {
       tokens.forEach(token => localStorage.removeItem(token));
     }
-    
     localStorage.removeItem('enrolledCourses');
-    
-   
+
+    resetAuthState();
+
     navigate('/login');
+
     setTimeout(() => window.location.reload(), 100);
   };
 
   return (
-    <MenuItem onClick={handleLogout}>
+    <MenuItem onClick={handleLogout} aria-label="Logout">
       <ListItemIcon>
-        <Logout fontSize="small" sx={{ ml: '5px' }} />
+        <Logout fontSize="small" sx={{ mr: 1 }} />
       </ListItemIcon>
       Logout
     </MenuItem>
