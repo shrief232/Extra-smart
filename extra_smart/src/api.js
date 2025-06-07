@@ -29,7 +29,7 @@ const getAccessToken = () => {
 const setAccessToken = (token) => {
   Cookies.set(ACCESS_TOKEN, token, {
     secure: import.meta.env.MODE === 'production',
-    sameSite: 'Strict',
+    sameSite: 'Lax',
     path: '/',
   });
 
