@@ -27,7 +27,7 @@ export default function AuthProvider({ children }) {
 
       try {
         const decoded = jwtDecode(accessToken);
-        const now = Date.now() / 1000;
+        const now = Math.floor(Date.now() / 1000);
         const isExpired = decoded.exp < now;
 
         if (!isExpired) {

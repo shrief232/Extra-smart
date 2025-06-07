@@ -14,7 +14,7 @@ export default function LogOut() {
   const handleLogout = () => {
     const tokens = [ACCESS_TOKEN, REFRESH_TOKEN];
     if (import.meta.env.MODE === 'production') {
-      tokens.forEach(token => Cookies.remove(token, { path: '/' }));
+      tokens.forEach(token => Cookies.remove(token, { path: '/login' }));
     } else {
       tokens.forEach(token => localStorage.removeItem(token));
     }
