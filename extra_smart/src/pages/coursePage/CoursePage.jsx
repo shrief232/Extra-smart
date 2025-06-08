@@ -8,7 +8,12 @@ import {
   Card,
   useMediaQuery,
   CardMedia,
-  Button
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse
 } from '@mui/material';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -29,7 +34,7 @@ import LessonQuestions from '../../components/userQuestion/LessonQuestions';
 
 const MotionBox = motion(Box);
 
-export default function CoursePage({ courseId, title, onLessonSelect, initialLessonId, }) {
+export default function CoursePage({ courseId, title, onLessonSelect, initialLessonId }) {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [value, setValue] = useState(0);
   const { enrolledCourses } = useEnrollment();
@@ -37,8 +42,12 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
   const [showLessons, setShowLessons] = useState(true);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery('(max-width:1300px)'); 
   const { lessonsState, updateLessonState } = useCourse();
-  
+  const [mobileLessonMenuOpen, setMobileLessonMenuOpen] = useState(false);
+  const [mobileLessonAnchorEl, setMobileLessonAnchorEl] = useState(null);
+  const [lessons, setLessons] = useState([]);
+
   useEffect(() => {
     const fetchResult = async (lessonId) => {
       try {
@@ -67,6 +76,22 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
     }
   }, [initialLessonId]);
 
+  useEffect(() => {
+    // جلب قائمة الدروس
+    const fetchLessons = async () => {
+      try {
+        const response = await api.get(`/courses/${courseId}/lessons/`);
+        setLessons(response.data);
+      } catch (error) {
+        console.error('Failed to fetch lessons', error);
+      }
+    };
+    
+    if (isEnrolled) {
+      fetchLessons();
+    }
+  }, [courseId, isEnrolled]);
+
   const handleVideoWatched = (lessonId) => {
     updateLessonState(lessonId, 'videoWatched', true);
   };
@@ -78,6 +103,24 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
   const currentLessonState = selectedLesson 
     ? lessonsState[selectedLesson.id] || {}
     : {};
+
+  // معالجة فتح قائمة الدروس على الهاتف
+  const handleMobileLessonMenuOpen = (event) => {
+    setMobileLessonAnchorEl(event.currentTarget);
+    setMobileLessonMenuOpen(true);
+  };
+
+  // معالجة إغلاق قائمة الدروس على الهاتف
+  const handleMobileLessonMenuClose = () => {
+    setMobileLessonMenuOpen(false);
+  };
+
+  // اختيار درس في وضع الهاتف
+  const handleMobileLessonSelect = (lesson) => {
+    setSelectedLesson(lesson);
+    if (onLessonSelect) onLessonSelect(lesson);
+    handleMobileLessonMenuClose(); // إغلاق القائمة بشكل ناعم
+  };
 
   return (
     <Box sx={{
@@ -110,7 +153,7 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
             alignItems: 'stretch',
           }}
         >
-          {showLessons && (
+          {showLessons && !isMobile && (
             <Card
               sx={{
                 p: 2,
@@ -185,7 +228,7 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
               width: '100%',
             }}
           >
-            {!showLessons && (
+            {!showLessons && !isMobile && (
               <IconButton
                 onClick={() => setShowLessons(true)}
                 sx={{
@@ -199,6 +242,66 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
               >
                 <Icon icon={'mdi:chevron-down'} width={28} height={28} />
               </IconButton>
+            )}
+
+            {/* زر قائمة الدروس للهواتف */}
+            {isMobile && isEnrolled && (
+              <Button
+                variant="contained"
+                onClick={handleMobileLessonMenuOpen}
+                startIcon={<Icon icon="mdi:menu" />}
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 16,
+                  zIndex: 10,
+                  borderRadius: '8px',
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'primary.dark',
+                  }
+                }}
+              >
+                {selectedLesson ? selectedLesson.title : 'Select Lesson'}
+              </Button>
+            )}
+
+            {/* قائمة منسدلة للدروس على الهواتف */}
+            {isMobile && (
+              <Menu
+                anchorEl={mobileLessonAnchorEl}
+                open={mobileLessonMenuOpen}
+                onClose={handleMobileLessonMenuClose}
+                PaperProps={{
+                  style: {
+                    maxHeight: 400,
+                    width: '80%',
+                    maxWidth: 400,
+                    borderRadius: '12px',
+                    boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
+                  },
+                }}
+                MenuListProps={{
+                  dense: true,
+                }}
+                transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+              >
+                     {isEnrolled ? (
+                    <LessonList
+                      courseId={courseId}
+                      onSelect={(lesson) => {
+                        setSelectedLesson(lesson);
+                        if (onLessonSelect) onLessonSelect(lesson); 
+                      }} 
+                      selected={selectedLesson?.video_file}
+                      watchedLessons={[1, 2, 3]}
+                    />
+                  ) : (
+                    <EnrollButton courseId={courseId} />
+                  )}
+              </Menu>
             )}
 
             {selectedLesson ? (
@@ -274,7 +377,7 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
                   />
                 </MotionBox>
                 <Typography variant="body1" color="text.secondary">
-                  Choose a lesson to view the video.
+                  {isMobile ? 'Select a lesson from the menu' : 'Choose a lesson to view the video.'}
                 </Typography>
               </Box>
             )}

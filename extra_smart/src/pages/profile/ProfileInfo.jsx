@@ -83,54 +83,145 @@ export default function ProfileInfo() {
   return (
     <Box sx={{ width: "100%" }}>
       {user && (
-        <Card sx={{ padding: 4, marginBottom: 3, borderRadius: 3, position: "relative" }}>
-          <Box sx={{ display: "flex", flexDirection: "column" }}>
-            <Box display="flex" alignItems="center" gap={4}>
-              <Avatar src={user.profile_image} sx={{ width: 110, height: 110 }} />
-              <Stack spacing={1} sx={{ mb: 4 }}>
-                <Typography variant="h6">
-                  Eng. {user.first_name || "N/A"} {user.last_name || ""}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Typography variant="body2" color="text.secondary">Job Title:</Typography>
-                  <Typography variant="body2">{user.job_title || "N/A"}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                    <Typography variant="body2" color={user.is_active ? 'success.main' : 'error.main'}>
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </Typography>
-                    <Icon icon='nrk:user-notloggedin-active' color="#147b06"/>
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
+       <Card
+  sx={{
+    p: { xs: 2, sm: 3, md: 4 },
+    mb: 3,
+    borderRadius: 3,
+    position: "relative",
+  }}
+>
+  <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: { xs: 2, sm: 3, md: 4 },
+      }}
+    >
+      <Avatar
+        src={user.profile_image}
+        sx={{
+          width: { xs: 70, sm: 90, md: 110 },
+          height: { xs: 70, sm: 90, md: 110 },
+        }}
+      />
+      <Stack
+        spacing={1}
+        sx={{ mb: { xs: 2, md: 4 }, flex: 1 }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" } }}
+        >
+          Eng. {user.first_name || "N/A"} {user.last_name || ""}
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+          >
+            Job Title:
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+          >
+            {user.job_title || "N/A"}
+          </Typography>
+        </Box>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Typography
+            variant="body2"
+            color={user.is_active ? "success.main" : "error.main"}
+            sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}
+          >
+            {user.is_active ? "Active" : "Inactive"}
+          </Typography>
+          <Icon icon="nrk:user-notloggedin-active" color="#147b06" />
+        </Box>
+      </Stack>
+    </Box>
+  </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-            <Button
-              onClick={() => setDialogOpen(true)}
-              sx={{ border: "1px solid", width: "70%", borderRadius:'10px' }}
-            >
-              Edit <Icon icon="mi:edit-alt" width="24" height="24" />
-            </Button>
-          </Box>
+  <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+    <Button
+      onClick={() => setDialogOpen(true)}
+      sx={{
+        border: "1px solid",
+        width: { xs: "90%", sm: "80%", md: "70%" },
+        borderRadius: "10px",
+        fontSize: { xs: "0.75rem", sm: "0.85rem" },
+      }}
+    >
+      Edit <Icon icon="mi:edit-alt" width="20" height="20" />
+    </Button>
+  </Box>
 
-          <Box sx={{ display: "flex", gap: 1, mt: 5, justifyContent: "center" }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="caption" color="text.secondary">Email</Typography>
-              <Typography variant="caption">{user.email || "N/A"}</Typography>
-            </Box>
-            <Divider orientation="vertical" sx={{ height: 50, mx: 2, borderRightWidth: 2 }} />
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="caption" color="text.secondary">Phone</Typography>
-              <Typography variant="caption">{user.phone_number || "N/A"}</Typography>
-            </Box>
-            <Divider orientation="vertical" sx={{ height: 50, mx: 2, borderRightWidth: 2 }} />
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="caption" color="text.secondary">Company</Typography>
-              <Typography variant="caption">{user.company_name || "N/A"}</Typography>
-            </Box>
-          </Box>
-        </Card>
+  <Box
+    sx={{
+      display: "flex",
+      gap: { xs: 1, sm: 2 },
+      mt: { xs: 3, sm: 4, md: 5 },
+      justifyContent: "center",
+    }}
+  >
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+      >
+        Email
+      </Typography>
+      <Typography variant="caption" sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}>
+        {user.email || "N/A"}
+      </Typography>
+    </Box>
+    <Divider
+      orientation="vertical"
+      sx={{
+        height: { xs: 40, sm: 50 },
+        mx: 1.5,
+        borderRightWidth: 2,
+      }}
+    />
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+      >
+        Phone
+      </Typography>
+      <Typography variant="caption" sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}>
+        {user.phone_number || "N/A"}
+      </Typography>
+    </Box>
+    <Divider
+      orientation="vertical"
+      sx={{
+        height: { xs: 40, sm: 50 },
+        mx: 1.5,
+        borderRightWidth: 2,
+      }}
+    />
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}
+      >
+        Company
+      </Typography>
+      <Typography variant="caption" sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem" } }}>
+        {user.company_name || "N/A"}
+      </Typography>
+    </Box>
+  </Box>
+</Card>
+
       )}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>

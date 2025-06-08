@@ -1,25 +1,20 @@
 import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import { useLocation, useNavigate } from 'react-router-dom';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import { Icon } from '@iconify/react';
 import Box from '@mui/material/Box';
 import { useTranslation } from 'react-i18next';
-// import AvatarMenu from '../Menu/Menu';
 import { IconButton, Collapse } from '@mui/material';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import AppBar from '@mui/material/AppBar';
-import NavLogo from '../logo/NavLogo';
 
-
-
-const LOGO_URL = '/assets/logo.png';
 const DRAWER_WIDTH = 350;
 
 const DrawerHeader = styled('div')(({ theme }) => ({
@@ -42,7 +37,7 @@ const Drawer = styled('div', {
   borderRight: '1px solid rgba(0, 0, 0, 0.12)',
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
-    duration: open 
+    duration: open
       ? theme.transitions.duration.enteringScreen
       : theme.transitions.duration.leavingScreen,
   }),
@@ -50,28 +45,25 @@ const Drawer = styled('div', {
   whiteSpace: 'nowrap',
 }));
 
-const LogoImage = styled('img')({
-  width: '140px',
-  height: 'auto',
-  objectFit: 'contain',
-  transition: 'opacity 0.3s',
-});
+export default function Controller({ open, onDrawerToggle, variant }) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [expandedSections, setExpandedSections] = React.useState({});
+  const isMobile = useMediaQuery('(max-width:800px)');
 
-export default function Controller({open, onDrawerToggle, variant}) {
-    const theme = useTheme(); 
-    const { t } = useTranslation();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [expandedSections, setExpandedSections] = React.useState({});
-
-    const toggleDrawer = () => {
-        onDrawerToggle(!open);
-    };
+  React.useEffect(() => {
+    if (isMobile && open) {
+      onDrawerToggle(false);
+    }
+    // لا نريد تفعيل useEffect مباشرة عند أول تركيب لو open=false
+  }, [isMobile]); // يفعل التحقق فقط عند تغيير الحجم
 
   const toggleSection = (segment) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [segment]: !prev[segment]
+      [segment]: !prev[segment],
     }));
   };
 
@@ -82,72 +74,112 @@ export default function Controller({open, onDrawerToggle, variant}) {
 
   const NAVIGATION = [
     { kind: 'header', title: t('Main items') },
-    { segment: '', title: t('Courses'), icon: <Icon icon='fluent-mdl2:publish-course' width='24' height='24' /> },
-    { 
+    {
+      segment: '',
+      title: t('Courses'),
+      icon: <Icon icon="fluent-mdl2:publish-course" width="24" height="24" />,
+    },
+    {
       segment: 'dahua',
-      title: t('Dahua'), 
-      icon: <Icon icon='material-symbols:nest-cam-floodlight' width='24' height='24' />, 
+      title: t('Dahua'),
+      icon: <Icon icon="material-symbols:nest-cam-floodlight" width="24" height="24" />,
       children: [
-        { segment: 'dahuahd', title: t('Dahua HD'), icon: <Icon icon='fluent:camera-dome-20-filled' width='20' height='20' />  },
-        { segment: 'dahuaip', title: t('Dahua IP'),  icon: <Icon icon='ph:security-camera-fill' width='24' height='24' /> },
-      ]
+        {
+          segment: 'dahuahd',
+          title: t('Dahua HD'),
+          icon: <Icon icon="fluent:camera-dome-20-filled" width="20" height="20" />,
+        },
+        {
+          segment: 'dahuaip',
+          title: t('Dahua IP'),
+          icon: <Icon icon="ph:security-camera-fill" width="24" height="24" />,
+        },
+      ],
     },
     { kind: 'divider' },
     { kind: 'header', title: t('Consumer & Intercom') },
-    { 
-        segment: 'imou',
-        title: t('IMOU'), 
-        icon: <Icon icon='icon-park-twotone:camera-two' width='32' height='32' />, 
-        children: [
-          { segment: 'imou', title: t('IMOU'), icon: <Icon icon='tdesign:camera-1-filled' width='24' height='24' />, },
-          
-        ]
-      },
-      { 
-        segment: 'intercom',
-        title: t('Intercom'), 
-        icon: <Icon icon='icon-park-outline:phone-one' width='24' height='24' />, 
-        children: [
-          { segment: 'Commax', title: t('Commax'), icon: <Icon icon='simple-icons:intercom' width='24' height='24' />, },
-          
-        ]
-      },
-         
+    {
+      segment: 'imou',
+      title: t('IMOU'),
+      icon: <Icon icon="icon-park-twotone:camera-two" width="32" height="32" />,
+      children: [
+        {
+          segment: 'imou',
+          title: t('IMOU'),
+          icon: <Icon icon="tdesign:camera-1-filled" width="24" height="24" />,
+        },
+      ],
+    },
+    {
+      segment: 'intercom',
+      title: t('Intercom'),
+      icon: <Icon icon="icon-park-outline:phone-one" width="24" height="24" />,
+      children: [
+        {
+          segment: 'Commax',
+          title: t('Commax'),
+          icon: <Icon icon="simple-icons:intercom" width="24" height="24" />,
+        },
+      ],
+    },
     { kind: 'divider' },
-    { kind: 'header', title: t('Sales') }, 
-    { 
-        segment: 'sales',
-        title: t('Sales Skills'), 
-        icon: <Icon icon="icon-park-twotone:sales-report" width='28' height='28' />, 
-        children: [
-          { segment: 'presales', title: t('Pre Sales'), icon: <Icon icon='ic:sharp-engineering' width='26' height='26' />  },
-          { segment: 'retail', title: t('Retail Sales'), icon: <Icon icon='fluent:building-retail-toolbox-24-regular' width='26' height='26' />  },
-        ]
-      },
-    
+    { kind: 'header', title: t('Sales') },
+    {
+      segment: 'sales',
+      title: t('Sales Skills'),
+      icon: <Icon icon="icon-park-twotone:sales-report" width="28" height="28" />,
+      children: [
+        {
+          segment: 'presales',
+          title: t('Pre Sales'),
+          icon: <Icon icon="ic:sharp-engineering" width="26" height="26" />,
+        },
+        {
+          segment: 'retail',
+          title: t('Retail Sales'),
+          icon: <Icon icon="fluent:building-retail-toolbox-24-regular" width="26" height="26" />,
+        },
+      ],
+    },
     { kind: 'divider' },
     { kind: 'header', title: t('My Progress') },
-    { segment: 'assessment', title: t('Assessment'), icon: <Icon icon='raphael:customer' width='28' height='28' />, children: [
-        { segment: 'assessment', title: t('My Assessment'), icon: <Icon icon='healthicons:i-certificate-paper' width='28' height='28'/> },
-        { segment: 'evaluation', title: t('Evaluation & Suggestions'), icon: <Icon icon='material-symbols:prompt-suggestion' width='28' height='28'/> },
-      ]},
-    { kind: 'divider' },
-    { kind: 'header', title: t('payments') },
-    { segment: 'payments', title: t('My Payments'), icon: <Icon icon='fluent:payment-32-filled' width='28' height='28' />, 
-        
-      },
-    
+    {
+      segment: 'assessment',
+      title: t('Assessment'),
+      icon: <Icon icon="raphael:customer" width="28" height="28" />,
+      children: [
+        {
+          segment: 'assessment',
+          title: t('My Assessment'),
+          icon: <Icon icon="healthicons:i-certificate-paper" width="28" />,
+        },
+        {
+          segment: 'evaluation',
+          title: t('Evaluation & Suggestions'),
+          icon: <Icon icon="material-symbols:prompt-suggestion" width="28" />,
+        },
+      ],
+    },
   ];
+
+  const handleNavClick = (path, hasChildren, segment) => {
+    if (hasChildren) {
+      toggleSection(segment);
+    } else {
+      navigate(path);
+      if (isMobile) onDrawerToggle(false);
+    }
+  };
 
   const MuiAppBar = styled(AppBar)(({ theme }) => ({
     width: `calc(100% - ${open ? DRAWER_WIDTH : 56}px)`,
-    backgroundColor: 'inherit', 
-    backdropFilter: 'none', 
+    backgroundColor: 'inherit',
+    backdropFilter: 'none',
     boxShadow: 'none',
     marginLeft: { xs: 0, sm: `${open ? DRAWER_WIDTH : 56}px` },
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
-      duration: open 
+      duration: open
         ? theme.transitions.duration.enteringScreen
         : theme.transitions.duration.leavingScreen,
     }),
@@ -155,61 +187,57 @@ export default function Controller({open, onDrawerToggle, variant}) {
     [theme.breakpoints.down('sm')]: {
       width: '100%',
       marginLeft: 0,
-      
     },
   }));
 
   return (
     <>
-      
-      <Drawer
-       variant={variant}
-       open={open}>
-      <Box
+      <Drawer variant={variant} open={open}>
+        <Box
           sx={{
             height: '100%',
-            display: { xs: open ? "block" : "none", md: "block" },
+            display: { xs: open ? 'block' : 'none', md: 'block' },
             flexDirection: 'column',
-            transition: "all 0.3s ease-in-out",
+            transition: 'all 0.3s ease-in-out',
             backgroundColor: theme.palette.background.paper,
-            boxShadow: theme.palette.mode === 'dark' 
-            ? '4px 0 10px rgba(23, 6, 95, 0.1)' 
-            : '4px 0 10px rgba(0, 0, 0, 0.1)',          
+            boxShadow:
+              theme.palette.mode === 'dark'
+                ? '4px 0 10px rgba(23, 6, 95, 0.1)'
+                : '4px 0 10px rgba(0, 0, 0, 0.1)',
           }}
         >
-
           <DrawerHeader>
-            <Box sx={{ 
-              width: '100%',
-             px: 2,
-             py: 2,
-             display: 'flex',
-             alignItems: 'center',
-             justifyContent: 'space-between',
-             borderBottom: `1px solid ${theme.palette.divider}`,
-            //  backgroundColor: theme.palette.background.default,
-              
-            }}>
-              
+            <Box
+              sx={{
+                width: '100%',
+                px: 2,
+                py: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
               <IconButton
-                onClick={toggleDrawer}
+                onClick={() => onDrawerToggle(!open)}
                 sx={{
                   borderRadius: 1,
                   border: `1px solid ${theme.palette.divider}`,
                   p: 0.5,
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
+                  backgroundColor:
+                    theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   transition: 'transform 0.3s',
                   '&:hover': {
                     transform: 'rotate(90deg)',
                   },
                 }}
-                  >
-                    <Icon
-                      icon={open ? 'ri:menu-fold-3-line' : 'ri:menu-fold-4-line'}
-                      width="24"
-                      height="24"
-                    />
+              >
+                <Icon
+                  icon={open ? 'ri:menu-fold-3-line' : 'ri:menu-fold-4-line'}
+                  width="24"
+                  height="24"
+                />
               </IconButton>
               <Box
                 component="img"
@@ -222,64 +250,68 @@ export default function Controller({open, onDrawerToggle, variant}) {
                   mr: 3,
                   mt: 1,
                 }}
-                />
+              />
             </Box>
           </DrawerHeader>
 
           <List
-           component="nav" 
-           sx={{ 
-            flexGrow: 1, 
-            overflowY: 'auto' ,
-            '&::-webkit-scrollbar': {
-              width: '2px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: theme.palette.mode === 'dark' ? '#2844B5' : '#f5f5f5',
-              borderRadius: '2px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: theme.palette.mode === 'dark' ? '#2844B5' : '#c1c1c1',
-              borderRadius: '2px',
-              '&:hover': {
-                backgroundColor: theme.palette.mode === 'dark' ? '#2844B5' : '#a8a8a8',
-              }
-            },
-            scrollbarWidth: 'thin',
-            scrollbarColor: ' #576CBD #4568F1', 
-            transition: theme => theme.transitions.create('scrollbar-color', {
-              duration: 100
-            }),
-            pr: 1
-
-           }}>
-            {NAVIGATION.map((item, index) => (
-              <React.Fragment key={index}>
+            component="nav"
+            sx={{
+              flexGrow: 1,
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': { width: '2px' },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor:
+                  theme.palette.mode === 'dark' ? '#2844B5' : '#f5f5f5',
+                borderRadius: '2px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor:
+                  theme.palette.mode === 'dark' ? '#2844B5' : '#c1c1c1',
+                borderRadius: '2px',
+                '&:hover': {
+                  backgroundColor:
+                    theme.palette.mode === 'dark' ? '#2844B5' : '#a8a8a8',
+                },
+              },
+              scrollbarWidth: 'thin',
+              scrollbarColor: ' #576CBD #4568F1',
+              transition: (theme) =>
+                theme.transitions.create('scrollbar-color', {
+                  duration: 100,
+                }),
+              pr: 1,
+            }}
+          >
+            {NAVIGATION.map((item, i) => (
+              <React.Fragment key={i}>
                 {item.kind === 'divider' ? (
-                  <Divider sx={{ my: 1 , borderColor: theme.palette.divider }} />
+                  <Divider sx={{ my: 1, borderColor: theme.palette.divider }} />
                 ) : item.kind === 'header' ? (
                   <Collapse
-                   in={open}
-                   orientation="horizontal"
-                   sx={{ 
-                    maxHeight: open ? '50px' : '0px',
-                    overflow: 'hidden',
-                    transition: theme => theme.transitions.create(['max-height', 'opacity'], {
-                      easing: theme.transitions.easing.sharp,
-                      duration: open 
-                        ? theme.transitions.duration.enteringScreen
-                        : theme.transitions.duration.leavingScreen,
-                    }),
-                    opacity: open ? 1 : 0,
-                   }}
-                   >
-                    <Box sx={{ 
-                      px: 2, 
-                      py: 1, 
-                      color: theme.palette.text.secondary,
-                      typography: 'caption',
-                     
-                    }}>
+                    in={open}
+                    orientation="horizontal"
+                    sx={{
+                      maxHeight: open ? '50px' : '0px',
+                      overflow: 'hidden',
+                      transition: (theme) =>
+                        theme.transitions.create(['max-height', 'opacity'], {
+                          easing: theme.transitions.easing.sharp,
+                          duration: open
+                            ? theme.transitions.duration.enteringScreen
+                            : theme.transitions.duration.leavingScreen,
+                        }),
+                      opacity: open ? 1 : 0,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 1,
+                        color: theme.palette.text.secondary,
+                        typography: 'caption',
+                      }}
+                    >
                       {item.title}
                     </Box>
                   </Collapse>
@@ -287,16 +319,12 @@ export default function Controller({open, onDrawerToggle, variant}) {
                   <Box key={item.segment}>
                     <ListItemButton
                       selected={isActive(`/${item.segment}`)}
-                      onClick={() => {
-                        if (item.children) {
-                          toggleSection(item.segment);
-                        } else {
-                          navigate(`/${item.segment}`);
-                        }
-                      }}
+                      onClick={() =>
+                        handleNavClick(`/${item.segment}`, !!item.children, item.segment)
+                      }
                       sx={{
                         '&.Mui-selected': {
-                          backgroundColor: theme.palette.action.selected, 
+                          backgroundColor: theme.palette.action.selected,
                           borderRight: `1px solid ${theme.palette.divider}`,
                         },
                         '&:hover': {
@@ -307,55 +335,62 @@ export default function Controller({open, onDrawerToggle, variant}) {
                         height: 48,
                       }}
                     >
-                      <ListItemIcon sx={{ 
-                        minWidth: '40px',
-                        color: isActive(`/${item.segment}`) ? theme.palette.primary.main 
-                        : theme.palette.text.primary 
-                      }}>
+                      <ListItemIcon
+                        sx={{
+                          minWidth: '40px',
+                          color: isActive(`/${item.segment}`)
+                            ? theme.palette.primary.main
+                            : theme.palette.text.primary,
+                        }}
+                      >
                         {item.icon}
                       </ListItemIcon>
                       <Collapse
-                       in={open} 
-                       orientation="horizontal"
-                       sx={{
-                        overflow: 'hidden',
-                        transition: theme => theme.transitions.create(['transform', 'opacity'], {
-                          easing: theme.transitions.easing.sharp,
-                          duration: open 
-                            ? theme.transitions.duration.enteringScreen
-                            : theme.transitions.duration.leavingScreen,
-                        }),
-                        transform: open ? 'translateX(0)' : 'translateX(-100%)',
-                        opacity: open ? 1 : 0,
-                        width: '100%',
-                      }}
-                       >
-                        <ListItemText 
-                          primary={item.title} 
-                          sx={{ 
+                        in={open}
+                        orientation="horizontal"
+                        sx={{
+                          overflow: 'hidden',
+                          transition: (theme) =>
+                            theme.transitions.create(['transform', 'opacity'], {
+                              easing: theme.transitions.easing.sharp,
+                              duration: open
+                                ? theme.transitions.duration.enteringScreen
+                                : theme.transitions.duration.leavingScreen,
+                            }),
+                          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+                          opacity: open ? 1 : 0,
+                          width: '100%',
+                        }}
+                      >
+                        <ListItemText
+                          primary={item.title}
+                          sx={{
                             opacity: open ? 1 : 0,
                             transition: 'opacity 0.2s ease 0.1s',
                             whiteSpace: 'nowrap',
-                            width: open ? 'auto' : 0  
+                            width: open ? 'auto' : 0,
                           }}
                         />
                       </Collapse>
                       {item.children && open && (
-                        expandedSections[item.segment] ? <ExpandLess /> : <ExpandMore />
+                        expandedSections[item.segment] ? (
+                          <ExpandLess />
+                        ) : (
+                          <ExpandMore />
+                        )
                       )}
                     </ListItemButton>
 
                     {item.children && (
-                      <Collapse 
-                        in={expandedSections[item.segment]} 
-                        timeout="auto" 
-                        unmountOnExit
-                      >
+                      <Collapse in={expandedSections[item.segment]} timeout="auto" unmountOnExit>
                         {item.children.map((child) => (
                           <ListItemButton
                             key={child.segment}
                             selected={isActive(`/${item.segment}/${child.segment}`)}
-                            onClick={() => navigate(`/${item.segment}/${child.segment}`)}
+                            onClick={() => {
+                              navigate(`/${item.segment}/${child.segment}`);
+                              if (isMobile) onDrawerToggle(false);
+                            }}
                             sx={{
                               pl: 6,
                               height: 40,
@@ -373,11 +408,11 @@ export default function Controller({open, onDrawerToggle, variant}) {
                               {child.icon}
                             </ListItemIcon>
                             <Collapse in={open} orientation="horizontal">
-                              <ListItemText 
-                                primary={child.title} 
-                                sx={{ 
+                              <ListItemText
+                                primary={child.title}
+                                sx={{
                                   opacity: open ? 1 : 0,
-                                  transition: 'opacity 0.3s' 
+                                  transition: 'opacity 0.3s',
                                 }}
                               />
                             </Collapse>
