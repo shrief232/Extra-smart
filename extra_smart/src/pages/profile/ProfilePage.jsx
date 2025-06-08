@@ -12,7 +12,7 @@ import ProfileTabs from '../../components/user/ProfileTabs';
 export default function ProfilePage() {
   const [tab, setTab] = React.useState(0);
   const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('md')); // md = 960px
+  const isSmall = useMediaQuery(theme.breakpoints.down('md')); 
 
   const handleTabChange = (_, newValue) => setTab(newValue);
 
@@ -25,11 +25,11 @@ export default function ProfilePage() {
         flexDirection: isSmall ? 'column' : 'row',
       }}
     >
-      {/* Profile Info first on small screens */}
+      
       <Box
         sx={{
-          width: isSmall ? '100%' : '30%',
-          order: isSmall ? 0 : 1, // Make it appear first on small screens
+          width: isSmall ? '100%' : '35%',
+          order: isSmall ? 0 : 1, 
           mb: isSmall ? 3 : 0,
         }}
       >
@@ -37,11 +37,9 @@ export default function ProfilePage() {
       </Box>
 
      
-
-      {/* Welcoming + Tabs */}
       <Box
         sx={{
-          width: isSmall ? '100%' : '75%',
+          width: isSmall ? '100%' : '70%',
           order: isSmall ? 1 : 0,
         }}
       >

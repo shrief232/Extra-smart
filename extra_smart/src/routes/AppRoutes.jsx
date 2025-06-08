@@ -8,7 +8,6 @@ import Commax from '../pages/Commax/Commax';
 import Evaluation from '../pages/Evaluation/Evaluation';
 import Imou from '../pages/Imou/Imou';
 import MyAssessment from '../pages/MyAssessment/MyAssessment';
-import MyPayments from '../pages/MyPayments/MyPayments';
 import Presales from '../pages/PreSales/Presales';
 import Retail from '../pages/Retail/Retail';
 import LoginPage from '../join/LoginPage';
@@ -53,7 +52,6 @@ export default function AppRoutes() {
             <Route path='assessment/assessment' element={<MyAssessment />} />
             <Route path='finalip' element={<IPFinal />} />
             <Route path='finalhd' element={<HDFinal />} /> 
-            <Route path='payments' element={<MyPayments />} />
             <Route path='sales/presales' element={<Presales />} />
             <Route path='sales/retail' element={<Retail />} /> 
             <Route path='profile' element={<ProfilePage />} />

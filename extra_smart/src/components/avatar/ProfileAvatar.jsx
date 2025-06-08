@@ -113,7 +113,10 @@ export default function ProfileAvatar() {
 
           <Button
             variant="outlined"
-            onClick={handleProfileClick}
+             onClick={() => {
+                handleProfileClick();
+                handleCloseUserMenu(); 
+              }}
             fullWidth
             sx={{
               mt: 1,
@@ -156,7 +159,9 @@ export default function ProfileAvatar() {
             </Typography>
           </MenuItem> */}
 
-          <MenuItem sx={{  }}>
+          <MenuItem 
+           onClick={handleCloseUserMenu} 
+          sx={{  }}>
             Language
             <Box flexGrow={1} />
             <Typography variant="caption" color="text.secondary">
