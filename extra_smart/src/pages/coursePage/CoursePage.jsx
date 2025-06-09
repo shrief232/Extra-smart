@@ -77,7 +77,7 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
   }, [initialLessonId]);
 
   useEffect(() => {
-    // جلب قائمة الدروس
+   
     const fetchLessons = async () => {
       try {
         const response = await api.get(`/courses/${courseId}/lessons/`);
@@ -104,22 +104,20 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
     ? lessonsState[selectedLesson.id] || {}
     : {};
 
-  // معالجة فتح قائمة الدروس على الهاتف
   const handleMobileLessonMenuOpen = (event) => {
     setMobileLessonAnchorEl(event.currentTarget);
     setMobileLessonMenuOpen(true);
   };
 
-  // معالجة إغلاق قائمة الدروس على الهاتف
   const handleMobileLessonMenuClose = () => {
     setMobileLessonMenuOpen(false);
   };
 
-  // اختيار درس في وضع الهاتف
+ 
   const handleMobileLessonSelect = (lesson) => {
     setSelectedLesson(lesson);
     if (onLessonSelect) onLessonSelect(lesson);
-    handleMobileLessonMenuClose(); // إغلاق القائمة بشكل ناعم
+    handleMobileLessonMenuClose(); 
   };
 
   return (
@@ -244,7 +242,12 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
               </IconButton>
             )}
 
-            {/* زر قائمة الدروس للهواتف */}
+            {isMobile && !isEnrolled && (
+              <Box sx={{ width: '100%', mb: 2 }}>
+                <EnrollButton courseId={courseId} />
+              </Box>
+            )}
+
             {isMobile && isEnrolled && (
               <Button
                 variant="contained"
@@ -267,7 +270,7 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
               </Button>
             )}
 
-            {/* قائمة منسدلة للدروس على الهواتف */}
+
             {isMobile && (
               <Menu
                 anchorEl={mobileLessonAnchorEl}
@@ -288,12 +291,13 @@ export default function CoursePage({ courseId, title, onLessonSelect, initialLes
                 transformOrigin={{ horizontal: 'left', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
               >
-                     {isEnrolled ? (
+                  {isEnrolled ? (
                     <LessonList
                       courseId={courseId}
                       onSelect={(lesson) => {
                         setSelectedLesson(lesson);
                         if (onLessonSelect) onLessonSelect(lesson); 
+                        handleMobileLessonMenuClose();
                       }} 
                       selected={selectedLesson?.video_file}
                       watchedLessons={[1, 2, 3]}
