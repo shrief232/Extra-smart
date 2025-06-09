@@ -54,45 +54,44 @@ export default function AuthLogin() {
       const { access, refresh, user } = response.data;
       const isSecure = import.meta.env.MODE === 'production';
 
-      if (access && refresh) {
-        // Set tokens in localStorage
-        localStorage.setItem(ACCESS_TOKEN, access);
-        localStorage.setItem(REFRESH_TOKEN, refresh);
+      if (!access || !refresh) {
+        throw new Error('Missing access or refresh token');
+      }
 
-        // Set cookies securely
+      // Store in both localStorage and cookies accordingly
+      if (isSecure) {
         Cookies.set(ACCESS_TOKEN, access, {
           path: '/',
-          secure: isSecure,
+          secure: true,
           sameSite: 'Strict',
         });
         Cookies.set(REFRESH_TOKEN, refresh, {
           path: '/',
-          secure: isSecure,
+          secure: true,
           sameSite: 'Strict',
         });
-
-        // Update auth state
-        setRegularAuth({
-          isRegularAuth: true,
-          user,
-        });
-
-        const redirectTo = location.state?.from?.pathname || '/';
-        navigate(redirectTo, { replace: true });
-        toast.success('Login successful');
-
-        await fetchEnrolledCourses();
       } else {
-        console.error('Access or refresh token is undefined:', { access, refresh });
-        toast.error('Unexpected login response. Try again.');
+        localStorage.setItem(ACCESS_TOKEN, access);
+        localStorage.setItem(REFRESH_TOKEN, refresh);
       }
+
+      setRegularAuth({
+        isRegularAuth: true,
+        user,
+      });
+
+      const redirectTo = location.state?.from?.pathname || '/';
+      navigate(redirectTo, { replace: true });
+      toast.success('Login successful');
+
+      await fetchEnrolledCourses();
     } catch (error) {
       console.error('Login error:', error);
-      if (error.code === 'ERR_NETWORK') {
-        toast.error('Cannot connect to server. Check if backend is running.');
-      } else {
-        toast.error(error.response?.data?.detail || 'Login failed. Please try again.');
-      }
+      const message =
+        error.code === 'ERR_NETWORK'
+          ? 'Cannot connect to the server. Check your internet or server.'
+          : error.response?.data?.detail || 'Login failed. Please try again.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -125,17 +124,15 @@ export default function AuthLogin() {
           variant="contained"
           sx={{
             bgcolor: '#4568f1',
-            color: (theme) =>
-              theme.palette.mode === 'light' ? 'common.white' : 'common.white',
+            color: 'common.white',
             '&:hover': {
               bgcolor: 'white',
-              color: (theme) =>
-                theme.palette.mode === 'light' ? 'common.white' : 'grey.800',
+              color: theme => theme.palette.mode === 'light' ? '#4568f1' : 'grey.800',
             },
           }}
           disabled={loading}
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </Button>
       </Stack>
     </CustomFormProvider>
