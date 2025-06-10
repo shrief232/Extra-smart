@@ -44,14 +44,19 @@ export default function AuthLogin() {
   const handleRegularLogin = async (data) => {
     setLoading(true);
     try {
+      // إرسال الطلب مع withCredentials: true
       const response = await api.post('/en/users/token/', {
         username: data.username,
         password: data.password,
-      });
+      }, { withCredentials: true });
 
       const { access, user } = response.data;
-      if (!access) throw new Error('Missing access token');
 
+      if (!access) {
+        throw new Error('Missing access token');
+      }
+
+      // تخزين الـ access token في sessionStorage
       setAccessToken(access);
 
       setRegularAuth({
