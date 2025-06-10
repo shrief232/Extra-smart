@@ -1,16 +1,17 @@
 import axios from 'axios';
-import { ACCESS_TOKEN } from './constants';
-import { $isAuthorized } from './atoms/AuthAtom';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://shrief.pythonanywhere.com',
-  withCredentials: true,
+  withCredentials: true, 
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
 });
 
 // Getters
-const getAccessToken = () => sessionStorage.getItem(ACCESS_TOKEN);
+const getAccessToken = () => {
+  return sessionStorage.getItem(ACCESS_TOKEN);
+};
 
 // Setters
 const setAccessToken = (token) => {
@@ -24,7 +25,11 @@ const removeAccessToken = () => {
   delete api.defaults.headers.common['Authorization'];
 };
 
-// Check Token Expiry
+const removeRefreshToken = () => {
+ 
+};
+
+// Token Expiration Checker
 const isTokenExpired = (token) => {
   if (!token) return true;
   try {
@@ -36,7 +41,7 @@ const isTokenExpired = (token) => {
   }
 };
 
-// Refresh Access Token
+// Token Refresher
 const refreshAccessToken = async () => {
   try {
     const response = await api.post('/auth/token/refresh/');
@@ -49,10 +54,9 @@ const refreshAccessToken = async () => {
   }
 };
 
-// Axios Request Interceptor
 api.interceptors.request.use(async (config) => {
   const token = getAccessToken();
-
+  
   if (token && !isTokenExpired(token)) {
     config.headers.Authorization = `Bearer ${token}`;
     return config;
@@ -62,15 +66,15 @@ api.interceptors.request.use(async (config) => {
     const newToken = await refreshAccessToken();
     config.headers.Authorization = `Bearer ${newToken}`;
     return config;
-  } catch {
-    return config;
+  } catch (e) {
+    return config; // بدون توكن
   }
 }, error => Promise.reject(error));
 
 // Axios Response Interceptor
 api.interceptors.response.use(res => res, async (error) => {
   const original = error.config;
-
+  
   if (error.response?.status === 401 && !original._retry) {
     original._retry = true;
     try {
@@ -81,11 +85,11 @@ api.interceptors.response.use(res => res, async (error) => {
       logout();
     }
   }
-
+  
   return Promise.reject(error);
 });
 
-// Logout Function
+// Logout function
 const logout = async () => {
   try {
     await api.post('/auth/logout/');
@@ -93,15 +97,10 @@ const logout = async () => {
     console.error('Logout error', e);
   } finally {
     removeAccessToken();
-    window.$resetRecoilState?.($isAuthorized);
+    window.$resetRecoilState && window.$resetRecoilState($isAuthorized);
     window.location.href = '/login';
   }
 };
 
 export default api;
-export {
-  logout,
-  setAccessToken,
-  getAccessToken,
-  refreshAccessToken, 
-};
+export { logout, setAccessToken, getAccessToken };
