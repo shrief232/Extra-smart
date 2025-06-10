@@ -128,4 +128,4 @@ export default api;
 // Export the new token management functions if they need to be used outside this module,
 // otherwise, keep them internal. For now, `logout` is the main public function.
 // `setAccessToken` and `getAccessToken` are removed as per plan.
-export { logout };
+export { logout, storeAccessTokenInMemory, refreshAccessToken, getAccessTokenFromMemory, isTokenExpired };
