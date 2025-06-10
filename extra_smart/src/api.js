@@ -1,39 +1,32 @@
-// api.js
 import axios from 'axios';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
-
-let memoryAccessToken = null;
-let memoryRefreshToken = null;
+import { ACCESS_TOKEN } from './constants';
+import { $isAuthorized } from './atoms/AuthAtom';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://shrief.pythonanywhere.com',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/',
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
 });
 
 // Getters
-const getAccessToken = () => memoryAccessToken;
-const getRefreshToken = () => memoryRefreshToken;
+const getAccessToken = () => sessionStorage.getItem(ACCESS_TOKEN);
 
 // Setters
 const setAccessToken = (token) => {
-  memoryAccessToken = token;
-};
-const setRefreshToken = (token) => {
-  memoryRefreshToken = token;
+  sessionStorage.setItem(ACCESS_TOKEN, token);
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 };
 
 // Removers
 const removeAccessToken = () => {
-  memoryAccessToken = null;
-};
-const removeRefreshToken = () => {
-  memoryRefreshToken = null;
+  sessionStorage.removeItem(ACCESS_TOKEN);
+  delete api.defaults.headers.common['Authorization'];
 };
 
-// Token Expiration Checker
+// Check Token Expiry
 const isTokenExpired = (token) => {
+  if (!token) return true;
   try {
     const expiry = JSON.parse(atob(token.split('.')[1])).exp;
     const now = Math.floor(Date.now() / 1000);
@@ -43,42 +36,42 @@ const isTokenExpired = (token) => {
   }
 };
 
-// Token Refresher
+// Refresh Access Token
 const refreshAccessToken = async () => {
-  const refresh = getRefreshToken();
-  if (!refresh) throw new Error('No refresh token');
-
   try {
-    const res = await api.post('/auth/token/refresh/', { refresh });
-    setAccessToken(res.data.access);
-    return res.data.access;
+    const response = await api.post('/auth/token/refresh/');
+    const newAccessToken = response.data.access;
+    setAccessToken(newAccessToken);
+    return newAccessToken;
   } catch (err) {
     logout();
     throw err;
   }
 };
 
+// Axios Request Interceptor
 api.interceptors.request.use(async (config) => {
-  let token = getAccessToken();
-  if (token && isTokenExpired(token)) {
-    try {
-      token = await refreshAccessToken();
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  }
+  const token = getAccessToken();
 
-  if (token) {
+  if (token && !isTokenExpired(token)) {
     config.headers.Authorization = `Bearer ${token}`;
+    return config;
   }
 
-  return config;
+  try {
+    const newToken = await refreshAccessToken();
+    config.headers.Authorization = `Bearer ${newToken}`;
+    return config;
+  } catch {
+    return config;
+  }
 }, error => Promise.reject(error));
 
 // Axios Response Interceptor
 api.interceptors.response.use(res => res, async (error) => {
   const original = error.config;
-  if (error.response?.status === 403 && !original._retry) {
+
+  if (error.response?.status === 401 && !original._retry) {
     original._retry = true;
     try {
       const newToken = await refreshAccessToken();
@@ -88,21 +81,27 @@ api.interceptors.response.use(res => res, async (error) => {
       logout();
     }
   }
+
   return Promise.reject(error);
 });
 
-// Logout function
-const logout = () => {
-  removeAccessToken();
-  removeRefreshToken();
-  window.$resetRecoilState && window.$resetRecoilState($isAuthorized);
-  window.location.href = '/login';
-  setTimeout(() => window.location.reload(), 100);
+// Logout Function
+const logout = async () => {
+  try {
+    await api.post('/auth/logout/');
+  } catch (e) {
+    console.error('Logout error', e);
+  } finally {
+    removeAccessToken();
+    window.$resetRecoilState?.($isAuthorized);
+    window.location.href = '/login';
+  }
 };
 
 export default api;
-export { logout, setAccessToken, setRefreshToken, getAccessToken, getRefreshToken };
-
-
-
-
+export {
+  logout,
+  setAccessToken,
+  getAccessToken,
+  refreshAccessToken, 
+};
