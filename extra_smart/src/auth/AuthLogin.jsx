@@ -13,7 +13,7 @@ import {
 import { Icon } from '@iconify/react';
 import { toast } from 'react-toastify';
 
-import api, { setAccessToken } from '../api';
+import api, { storeAccessTokenInMemory } from '../api';
 import CustomFormProvider from '../hooks-form/FormProvider';
 import RHFTextField from '../hooks-form/RHFTextFiled';
 import { $isAuthorized } from '../atoms/AuthAtom';
@@ -57,7 +57,7 @@ export default function AuthLogin() {
       }
 
       // تخزين الـ access token في sessionStorage
-      setAccessToken(access);
+      storeAccessTokenInMemory(access);
 
       setRegularAuth({
         isRegularAuth: true,

@@ -2,79 +2,54 @@ import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { $isAuthorized } from '../atoms/AuthAtom';
 import { jwtDecode } from 'jwt-decode';
-import api, { getAccessToken } from '../api';
+// Import refreshAccessToken from api.js, isTokenExpired is not strictly needed here
+// as refreshAccessToken handles its own logic, but good to be aware of it.
+import { refreshAccessToken as apiRefreshAccessToken } from '../api';
 
 export default function AuthProvider({ children }) {
   const setAuth = useSetRecoilState($isAuthorized);
 
   useEffect(() => {
     const initAuthState = async () => {
-      const access = getAccessToken();
-
-      if (!access) {
-        setAuth({ isRegularAuth: false, user: null, loading: false });
-        return;
-      }
-
       try {
-        
-        const decoded = jwtDecode(access);
-        const now = Math.floor(Date.now() / 1000);
-        
-        if (decoded.exp > now) {
+        // Attempt to refresh the token on load.
+        // apiRefreshAccessToken will store it in memory if successful.
+        const newAccessToken = await apiRefreshAccessToken();
+
+        if (newAccessToken) {
+          const decoded = jwtDecode(newAccessToken);
+          // No need to check expiry here again if refreshAccessToken guarantees a fresh token
+          // or if subsequent API calls will handle expired tokens via interceptors.
+          // For UI purposes, decoding it is enough.
           setAuth({
             isRegularAuth: true,
             user: {
               id: decoded.user_id,
               username: decoded.username || '',
               email: decoded.email || '',
+              // Add any other relevant user fields from the token
             },
-            loading: false
+            loading: false,
           });
-          return;
+        } else {
+          // This case might be redundant if apiRefreshAccessToken throws an error on failure,
+          // which would be caught by the outer catch block.
+          // However, if it can return null/undefined on certain non-error failures:
+          setAuth({ isRegularAuth: false, user: null, loading: false });
         }
-
-        
-        try {
-          const newToken = await refreshAccessToken();
-          if (newToken) {
-            const newDecoded = jwtDecode(newToken);
-            setAuth({
-              isRegularAuth: true,
-              user: {
-                id: newDecoded.user_id,
-                username: newDecoded.username || '',
-                email: newDecoded.email || '',
-              },
-              loading: false
-            });
-            return;
-          }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
-        }
-
-        
-        setAuth({ isRegularAuth: false, user: null, loading: false });
-      } catch (err) {
-        console.error('Auth init failed', err);
+      } catch (error) {
+        // This catch block handles failures from apiRefreshAccessToken (e.g., network error, invalid refresh token)
+        console.error('Auth Provider: Token refresh failed on init:', error);
         setAuth({ isRegularAuth: false, user: null, loading: false });
       }
     };
 
+    // Set loading to true initially before attempting to refresh
+    setAuth(prev => ({ ...prev, loading: true }));
     initAuthState();
   }, [setAuth]);
 
   return <>{children}</>;
 }
 
-
-async function refreshAccessToken() {
-  try {
-    const response = await api.post('/auth/token/refresh/');
-    return response.data.access;
-  } catch (error) {
-    console.error('Refresh token failed:', error);
-    return null;
-  }
-}
+// Removed local refreshAccessToken function to use the one from api.js
