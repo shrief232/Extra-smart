@@ -2,13 +2,7 @@ import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { $isAuthorized } from '../atoms/AuthAtom';
 import { jwtDecode } from 'jwt-decode';
-import api, {
-  logout,
-  setAccessToken,
-  setRefreshToken,
-  getAccessToken,
-  getRefreshToken,
-} from '../api';
+import api, { setAccessToken, setRefreshToken, getAccessToken, getRefreshToken, logout } from '../api';
 
 export default function AuthProvider({ children }) {
   const setAuth = useSetRecoilState($isAuthorized);
@@ -65,7 +59,3 @@ export default function AuthProvider({ children }) {
 
   return <>{children}</>;
 }
-
-
-
-
