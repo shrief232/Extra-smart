@@ -11,11 +11,9 @@ import {
   useTheme,
 } from '@mui/material';
 import { Icon } from '@iconify/react';
-import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
-import api from '../api';
+import api, { storeAccessTokenInMemory } from '../api';
 import CustomFormProvider from '../hooks-form/FormProvider';
 import RHFTextField from '../hooks-form/RHFTextFiled';
 import { $isAuthorized } from '../atoms/AuthAtom';
@@ -46,34 +44,20 @@ export default function AuthLogin() {
   const handleRegularLogin = async (data) => {
     setLoading(true);
     try {
+      // إرسال الطلب مع withCredentials: true
       const response = await api.post('/en/users/token/', {
         username: data.username,
         password: data.password,
-      });
+      }, { withCredentials: true });
 
-      const { access, refresh, user } = response.data;
-      const isSecure = import.meta.env.MODE === 'production';
+      const { access, user } = response.data;
 
-      if (!access || !refresh) {
-        throw new Error('Missing access or refresh token');
+      if (!access) {
+        throw new Error('Missing access token');
       }
 
-      // Store in both localStorage and cookies accordingly
-      if (isSecure) {
-        Cookies.set(ACCESS_TOKEN, access, {
-          path: '/',
-          secure: true,
-          sameSite: 'Strict',
-        });
-        Cookies.set(REFRESH_TOKEN, refresh, {
-          path: '/',
-          secure: true,
-          sameSite: 'Strict',
-        });
-      } else {
-        localStorage.setItem(ACCESS_TOKEN, access);
-        localStorage.setItem(REFRESH_TOKEN, refresh);
-      }
+      // تخزين الـ access token في sessionStorage
+      storeAccessTokenInMemory(access);
 
       setRegularAuth({
         isRegularAuth: true,

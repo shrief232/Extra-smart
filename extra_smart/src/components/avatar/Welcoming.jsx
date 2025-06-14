@@ -19,7 +19,7 @@ export default function Welcoming() {
   const [error, setError] = useState(null);
   const [dateTime, setDateTime] = useState(new Date());
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); 
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // أقل من 600px
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,8 +73,8 @@ export default function Welcoming() {
   const dayName = dateTime.toLocaleDateString('en-US', { weekday: 'long' });
 
   return (
-    <Box sx={{ width: '98%', position: 'relative'}}>
-      
+    <Box sx={{ width: '98%', position: 'relative' }}>
+      {/* التاريخ والوقت */}
       <Card
         sx={{
           position: 'absolute',
