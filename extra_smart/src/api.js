@@ -1,34 +1,46 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
+import { $isAuthorized } from './atoms/AuthAtom';  
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://shrief.pythonanywhere.com',
-  withCredentials: true, 
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/',
+  withCredentials: true,
+
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
 });
 
 let inMemoryAccessToken = null;
 
-const storeAccessTokenInMemory = (token) => {
-  inMemoryAccessToken = token;
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-};
 
-const getAccessTokenFromMemory = () => {
-  return inMemoryAccessToken;
-};
+// Setters
+const setAccessToken = (token) => { memoryAccessToken = token; };
+const setRefreshToken = (token) => { memoryRefreshToken = token; };
 
-const clearAccessTokenFromMemory = () => {
-  inMemoryAccessToken = null;
-  delete api.defaults.headers.common['Authorization'];
-};
+// Removers
+const removeAccessToken = () => { memoryAccessToken = null; };
+const removeRefreshToken = () => { memoryRefreshToken = null; };
 
-const removeRefreshToken = () => {
- 
-};
+// Load tokens on app start
+const loadTokensFromStorage = () => {
+  const isSecure = import.meta.env.MODE === 'production';
+  if (isSecure) {
+    const access = Cookies.get(ACCESS_TOKEN);
+    const refresh = Cookies.get(REFRESH_TOKEN);
+    if (access) setAccessToken(access);
+    if (refresh) setRefreshToken(refresh);
+  } else {
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    const refresh = localStorage.getItem(REFRESH_TOKEN);
+    if (access) setAccessToken(access);
+    if (refresh) setRefreshToken(refresh);
+  }
 
-// Token Expiration Checker
+};
+loadTokensFromStorage();
+
+// Token expiration check
 const isTokenExpired = (token) => {
   if (!token) return true;
   try {
@@ -40,8 +52,12 @@ const isTokenExpired = (token) => {
   }
 };
 
-// Token Refresher
+// Refresh token
 const refreshAccessToken = async () => {
+
+  const refresh = getRefreshToken();
+  if (!refresh) throw new Error('No refresh token');
+
   try {
     const response = await api.post('/auth/token/refresh/');
     const newAccessToken = response.data.access;
@@ -54,27 +70,21 @@ const refreshAccessToken = async () => {
 };
 
 api.interceptors.request.use(async (config) => {
-  let token = getAccessTokenFromMemory();
-  
-  if (token && !isTokenExpired(token)) {
-    config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  }
 
-  // If token is expired or doesn't exist, try to refresh it
-  try {
-    const newToken = await refreshAccessToken(); // refreshAccessToken now stores the token in memory
-    config.headers.Authorization = `Bearer ${newToken}`; // Set header for the current request
-    return config;
-  } catch (e) {
-    // If refresh fails, logout will be called by refreshAccessToken, which also clears the token.
-    // The request will proceed without an Authorization header.
-    // The response interceptor will handle the 401 if the endpoint requires auth.
-    return config;
+  let token = getAccessToken();
+  if (token && isTokenExpired(token)) {
+    try {
+      token = await refreshAccessToken();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+
+
 }, error => Promise.reject(error));
 
-// Axios Response Interceptor
 api.interceptors.response.use(res => res, async (error) => {
   const original = error.config;
   
@@ -82,50 +92,38 @@ api.interceptors.response.use(res => res, async (error) => {
   if (error.response?.status === 401 && !original._retry && original.url !== '/auth/token/refresh/') {
     original._retry = true;
     try {
-      const newToken = await refreshAccessToken(); // Stores the new token in memory
-      original.headers.Authorization = `Bearer ${newToken}`; // Update header for the retried request
+      const newToken = await refreshAccessToken();
+      original.headers.Authorization = `Bearer ${newToken}`; 
       return api(original);
     } catch (refreshError) {
-      // refreshAccessToken already called logout() if it failed catastrophically
-      // If logout wasn't called (e.g. specific error types), ensure it's called here.
-      // However, the current plan is refreshAccessToken calls logout on failure.
-      // So, this path might primarily be for cleanup or redirect if not already handled.
-      // The logout() function will handle redirecting to login.
-      // No need to call logout() again if refreshAccessToken already did.
+      
     }
   }
   
   return Promise.reject(error);
 });
 
-// Logout function
-const logout = async () => {
-  try {
-    // Attempt to logout from the backend. This might fail if the token is already invalid,
-    // but we should try to invalidate the session on the server side.
-    await api.post('/auth/logout/');
-  } catch (e) {
-    console.error('Logout API call error', e);
-  } finally {
-    clearAccessTokenFromMemory(); // Use the new function
-    // The recoil state reset and redirect logic remains the same.
-    // Assuming $isAuthorized is available in this scope or globally for the reset.
-    // If not, this part might need adjustment depending on how $isAuthorized is managed.
-    // For now, we'll keep it as is, assuming window.$resetRecoilState and $isAuthorized are correctly set up.
-    if (window.$resetRecoilState && typeof $isAuthorized !== 'undefined') {
-      window.$resetRecoilState($isAuthorized);
-    } else if (window.$resetRecoilState) {
-        // console.warn('$isAuthorized not defined for Recoil reset during logout.');
-        // Attempt to reset all states if specific atom is not available.
-        // This is a fallback and might not be desired.
-        // Consider passing the Recoil atom to the logout function if this becomes an issue.
-    }
-    window.location.href = '/login';
+
+const logout = () => {
+  removeAccessToken();
+  removeRefreshToken();
+
+  const isSecure = import.meta.env.MODE === 'production';
+  if (isSecure) {
+    Cookies.remove(ACCESS_TOKEN, { path: '/' });
+    Cookies.remove(REFRESH_TOKEN, { path: '/' });
+  } else {
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
   }
+
+  window.$resetRecoilState && window.$resetRecoilState($isAuthorized);
+  window.location.href = '/login';
+  setTimeout(() => window.location.reload(), 100);
 };
 
 export default api;
-// Export the new token management functions if they need to be used outside this module,
-// otherwise, keep them internal. For now, `logout` is the main public function.
-// `setAccessToken` and `getAccessToken` are removed as per plan.
-export { logout, storeAccessTokenInMemory, refreshAccessToken, getAccessTokenFromMemory, isTokenExpired };
+export { logout, setAccessToken, setRefreshToken, getAccessToken, getRefreshToken };
+
+
+

@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { $isAuthorized } from '../atoms/AuthAtom';
 import { jwtDecode } from 'jwt-decode';
-// Import refreshAccessToken from api.js, isTokenExpired is not strictly needed here
-// as refreshAccessToken handles its own logic, but good to be aware of it.
-import { refreshAccessToken as apiRefreshAccessToken } from '../api';
+
+import api, { setAccessToken, setRefreshToken, getAccessToken, getRefreshToken, logout } from '../api';
+
 
 export default function AuthProvider({ children }) {
   const setAuth = useSetRecoilState($isAuthorized);
@@ -52,4 +52,3 @@ export default function AuthProvider({ children }) {
   return <>{children}</>;
 }
 
-// Removed local refreshAccessToken function to use the one from api.js

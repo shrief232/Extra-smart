@@ -6,52 +6,52 @@ import AuthProvider from './context/AuthProvider';
 import { EnrollmentProvider } from './context/EnrollmentContext';
 import { Box } from '@mui/material';
 import { CourseProvider } from './context/CourseContext';
-import { $isAuthorized } from './atoms/AuthAtom';
-import { restoreSession } from './atoms/restoreSession';
-import CircularProgress from '@mui/material/CircularProgress';
+// import { $isAuthorized } from './atoms/AuthAtom';
+// import { restoreSession } from './atoms/restoreSession';
+// import CircularProgress from '@mui/material/CircularProgress';
 
 
 
-function AppInitializer({ children }) {
-  const setAuth = useSetRecoilState($isAuthorized);
-  const [loading, setLoading] = useState(true);
+// function AppInitializer({ children }) {
+//   const setAuth = useSetRecoilState($isAuthorized);
+//   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    restoreSession((authData) => {
-      if (authData.isAuthenticated) {
-        setAuth({
-          isRegularAuth: true,
-          isGoogleAuth: false,
-          user: authData.user || {}, 
-        });
-      } else {
-        setAuth({
-          isRegularAuth: false,
-          isGoogleAuth: false,
-          user: null,
-        });
-      }
-      setLoading(false);
-    });
-  }, []);
+//   useEffect(() => {
+//     restoreSession((authData) => {
+//       if (authData.isAuthenticated) {
+//         setAuth({
+//           isRegularAuth: true,
+//           isGoogleAuth: false,
+//           user: authData.user || {}, 
+//         });
+//       } else {
+//         setAuth({
+//           isRegularAuth: false,
+//           isGoogleAuth: false,
+//           user: null,
+//         });
+//       }
+//       setLoading(false);
+//     });
+//   }, []);
 
-  if (loading) {
-    return (
-      <Box
-       sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+//   if (loading) {
+//     return (
+//       <Box
+//        sx={{
+//           minHeight: '100vh',
+//           display: 'flex',
+//           alignItems: 'center',
+//           justifyContent: 'center',
+//         }}
+//       >
+//         <CircularProgress />
+//       </Box>
+//     );
+//   }
 
-  return <>{children}</>;
-}
+//   return <>{children}</>;
+// }
 function App() {
     return (
         <RecoilRoot>
@@ -59,9 +59,9 @@ function App() {
             <EnrollmentProvider>
               <CourseProvider>
                 <BrowserRouter >
-                  <AppInitializer>
+                  {/* <AppInitializer> */}
                     <AppRoutes />
-                  </AppInitializer>
+                  {/* </AppInitializer> */}
                 </BrowserRouter>
               </CourseProvider>
             </EnrollmentProvider>
